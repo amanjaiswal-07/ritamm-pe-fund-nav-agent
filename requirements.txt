@@ -1,3 +1,4 @@
+# Exact versions, so a run on another machine uses the same libraries as the submitted output.
 fastapi==0.162.0
 httpx==0.28.1
 openpyxl==3.1.5

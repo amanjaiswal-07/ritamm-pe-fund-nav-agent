@@ -101,6 +101,7 @@ Models do get things wrong on the first try, so expect retry warnings in the log
 
 ## Known gaps
 
+- I only ran this on Windows with Python 3.13. For 3.11 I checked the syntax and that the pinned packages install, but did not run it. Linux and macOS are untested.
 - The parser is built for this bank's layout. A different statement would fail with a parse error, not produce wrong rows, but it would need its own layout handling.
 - The ECB rate is pinned in `config.py`. A new quarter needs a new rate.
 - Only USD and EUR are supported. Any other currency stops the review.

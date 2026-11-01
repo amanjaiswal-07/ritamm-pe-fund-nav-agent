@@ -1,8 +1,13 @@
+# Secrets: the LLM key must never be committed.
 .env
+
+# Local environment and generated files.
 .venv/
 __pycache__/
 .pytest_cache/
 *.pyc
 dist/
+
+# Supplied in the submitted zip, but kept out of Git: the pack is marked confidential.
 pack/
 output/

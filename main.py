@@ -20,6 +20,7 @@ from agents.a2a import CARD_PATH, A2AClient, A2AError, data_part, new_message, t
 ROOT = Path(__file__).resolve().parent
 OUTPUT_FILES = ("transactions.json", "a2a_log.jsonl", "marks.json", "review.json", "nav.json")
 STARTUP_TIMEOUT_SECONDS = 30
+STOP_TIMEOUT_SECONDS = 10
 CLOSE_TIMEOUT_SECONDS = 1800  # Allows for rate-limit waits on a free LLM tier.
 
 
@@ -46,6 +47,18 @@ def start_agent(module: str, pack_dir: Path, output_dir: Path) -> subprocess.Pop
     return subprocess.Popen(
         [sys.executable, "-m", module, "--pack-dir", str(pack_dir), "--output-dir", str(output_dir)], cwd=ROOT
     )
+
+
+def stop_agents(processes: list[subprocess.Popen]) -> None:
+    """Ask each agent to stop, and force it if it has not exited after a few seconds."""
+    for process in processes:
+        process.terminate()
+    for process in processes:
+        try:
+            process.wait(timeout=STOP_TIMEOUT_SECONDS)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 
 def print_summary(output_dir: Path, status_text: str) -> None:
@@ -104,10 +117,7 @@ def run(pack_dir: Path, output_dir: Path) -> int:
         print_summary(output_dir, task_text(task))
         return 0
     finally:
-        for process in processes:
-            process.terminate()
-        for process in processes:
-            process.wait(timeout=10)
+        stop_agents(processes)
 
 
 def main() -> int:
