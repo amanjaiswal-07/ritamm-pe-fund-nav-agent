@@ -31,34 +31,23 @@ Some of it takes judgment. A wire may not name the investor who sent it. A payme
 Each agent runs as its own process, and HTTP is the only link between them. `main.py` is only a launcher and holds no business logic.
 
 ```mermaid
-flowchart LR
-    M["main.py<br/>launcher"]
+flowchart TD
+    M["main.py<br/>starts both agents, then triggers A"] --> A
+    PDF[("Bank statement PDF")] --> A
+    LLM(["Any OpenAI-compatible LLM"]) <--> A
 
-    subgraph A["Agent A: Bank & Ingestion"]
-        A1["Parse PDF"] --> A2["Reconcile balances"]
-        A2 --> A3["LLM categorizes rows"]
-        A3 --> A4["Check every answer"]
-    end
+    A["<b>Agent A: Bank & Ingestion</b><br/>parse PDF, reconcile balances,<br/>categorize rows, check every answer"]
+    B["<b>Agent B: Valuation & NAV</b><br/>verify purchases and sales, release marks,<br/>review marks, compute NAV and bridge"]
 
-    subgraph B["Agent B: Valuation & NAV"]
-        B1["Verify purchases and sales"] --> B2["Release marks"]
-        B2 --> B3["Review marks: R1 to R4"]
-        B3 --> B4["NAV and bridge"]
-    end
+    A <-- "A2A over HTTP<br/>JSON-RPC 2.0" --> B
+    A --> OA["transactions.json<br/>marks.json<br/>a2a_log.jsonl"]
 
-    PDF[("Bank statement PDF")] --> A1
-    Q3[("Q3 Excel files")] --> A3
-    Q3 --> B3
-    CVP[("agent_b_data.json<br/>Agent B only")] --> B1
-    LLM(["Any OpenAI-compatible LLM"]) <--> A3
-
-    M -- "starts and triggers" --> A
-    M -- "starts" --> B
-    A4 <-- "A2A over HTTP<br/>JSON-RPC 2.0" --> B1
-
-    A4 --> OA["transactions.json<br/>marks.json<br/>a2a_log.jsonl"]
-    B4 --> OB["review.json<br/>nav.json"]
+    CVP[("agent_b_data.json<br/>Agent B only")] --> B
+    Q3[("Q3 Excel files")] --> B
+    B --> OB["review.json<br/>nav.json"]
 ```
+
+Agent A also reads a few facts from the Q3 NAV summary, which the project structure section explains.
 
 ### The A2A conversation
 
